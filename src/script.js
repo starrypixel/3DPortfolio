@@ -22,6 +22,7 @@ geometry2.scale(0.2, 0.2, 0.2);
 const material2 = new THREE.MeshLambertMaterial({color: '#f6bb24', emissive: '#d58d0a'});
 
 const sphere = new THREE.Mesh(geometry, material);
+sphere.position.y = -10
 //sphere.position.z = 3;
 scene.add(sphere);
 
@@ -29,8 +30,14 @@ const icosahed = new THREE.Mesh(geometry2, material2);
 //icosahed.scale(0.2,0.2,0.2);
 scene.add(icosahed);
 
+const geometry3 = new THREE.SphereGeometry(5, 50, 35)
+const material3 = new THREE.MeshBasicMaterial({map:new THREE.TextureLoader().load('../resources/8k_earth_nightmap.jpg')})
+const earth = new THREE.Mesh(geometry3, material3)
+earth.position.set(0, 0, 0)
+scene.add(earth)
+
 const orbitRadius = 4;
-icosahed.position.set(orbitRadius, 0, 0);
+icosahed.position.set(orbitRadius, -10, 0);
 
 
 const light = new THREE.DirectionalLight(0x9CDBA6, 25);
@@ -64,6 +71,8 @@ function animate(){
     const time = Date.now() * 0.0002  ;
     icosahed.position.x = Math.cos(time) * orbitRadius;
     icosahed.position.y = Math.sin(time) * orbitRadius;
+
+    earth.rotation.y += 0.002
 
     renderer.render(scene, camera);
 }
