@@ -1,15 +1,21 @@
 import * as THREE from 'three';
-import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import vertexShader from '../shaders/vertex.glsl';
+import fragmentShader from '../shaders/fragment.glsl';
+import globeTexture from '../resources/8k_earth_nightmap.jpg';
+
+import atmosphereVertexShader from '../shaders/atmVertex.glsl';
+import atmosphereFragmentShader from '../shaders/atmFragment.glsl';
 
 const canvas = document.getElementById('canvas')
 
 // 1. Add the scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#1c1c1c');
+scene.background = new THREE.Color('#00101c');
 
 // 3. Add camera and light
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 5;
+camera.position.z = 15;
 
 // 2.1 Add object 1
 const geometry = new THREE.IcosahedronGeometry();
@@ -31,21 +37,43 @@ const icosahed = new THREE.Mesh(geometry2, material2);
 scene.add(icosahed);
 
 const geometry3 = new THREE.SphereGeometry(5, 50, 35)
-const material3 = new THREE.MeshBasicMaterial({map:new THREE.TextureLoader().load('../resources/8k_earth_nightmap.jpg')})
-const earth = new THREE.Mesh(geometry3, material3)
+// const material3 = new THREE.MeshBasicMaterial({map:new THREE.TextureLoader().load('../resources/8k_earth_nightmap.jpg')})
+const material3_1 = new THREE.ShaderMaterial(
+  {vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+      uniforms: {
+        globeTexture: {value: new THREE.TextureLoader().load('../resources/8k_earth_nightmap.jpg')}
+      }
+  })
+const earth = new THREE.Mesh(geometry3, material3_1)
 earth.position.set(0, 0, 0)
+
+const atmosphere = new THREE.Mesh(
+  new THREE.SphereGeometry(5, 50, 35),
+  new THREE.ShaderMaterial(
+    {
+    vertexShader: atmosphereVertexShader,
+    fragmentShader: atmosphereFragmentShader,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide
+  })
+)
+
+atmosphere.position.set(0, 0, 0)
+atmosphere.scale.set(1.1, 1.1,1.1, 1.0)
 scene.add(earth)
+earth.add(atmosphere)
 
 const orbitRadius = 4;
 icosahed.position.set(orbitRadius, -10, 0);
 
 
-const light = new THREE.DirectionalLight(0x9CDBA6, 25);
-light.position.set(1,1,1);
+const light = new THREE.DirectionalLight(0x9CDBA6, 30);
+light.position.set(10,80,100);
 scene.add(light);
 
 // 4. Add renderer
-const renderer = new THREE.WebGLRenderer(canvas);
+const renderer = new THREE.WebGLRenderer({antialias: true, canvas: canvas});
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -64,7 +92,6 @@ function animate(){
     sphere.rotation.y += 0.01;
     sphere.rotation.z += 0.01;
 
-
     icosahed.rotation.x += 0.05;
 
     // Orbitting
@@ -72,12 +99,24 @@ function animate(){
     icosahed.position.x = Math.cos(time) * orbitRadius;
     icosahed.position.y = Math.sin(time) * orbitRadius;
 
-    earth.rotation.y += 0.002
+    earth.rotation.y += 0.001
+    //atmosphere.rotation.y += 0.02
 
     renderer.render(scene, camera);
 }
 
 animate();
+
+const mouse = {
+    x: undefined,
+    y: undefined
+}
+
+
+addEventListener('mousemove', (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = (event.clientY / window.innerHeight) * 2 + 1;
+})
 
 /*
 window.addEventListener('resize', () => {]
